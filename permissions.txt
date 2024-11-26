@@ -1,0 +1,89 @@
+
+
+
+//Dashboard 
+
+{
+  name : "view_dashboard"
+  description : "Voir le dashboard"
+}
+
+{
+  name : "view_dashboard_users"
+  description : "Voir la listes des utilisateurs"
+} 
+  
+{
+  name : "view_dashboard_categories"
+  description : "Voir la listes des categories"
+} 
+
+{
+  name : view_dashboard_groups
+  description : Voir la listes des Groupes
+} 
+
+{
+  name : "interact_dashboard_users"
+  description : "Pouvoir intéragir avec les utilisateurs"
+} 
+
+{
+  name : "interact_dashboard_categories"
+  description : "Pouvoir intéragir avec les categories"
+} 
+
+{
+  name : "interact_dashboard_groups"
+  description : "Pouvoir intéragir avec les Groupes"
+}
+
+
+
+//Catégorie Personnalisée
+{
+name: `view_category_topics_category_${newCategory.id}`
+description: `Voir les topics & posts de ${newCategory.name}`
+},
+{
+name : `lock_unlock_post_category_${newCategory.id}`
+description : `Pouvoir locker / unlock un post dans ${newCategory.name}`
+},
+{
+name : `interact_category_topics_${newCategory.id}`
+description : `Pouvoir locker / unlocker les topics de ${newCategory.name}`
+},
+
+{
+name : `create_post_category_${newCategory.id}`
+description : `Pouvoir crée un post dans ${newCategory.name}`
+},
+
+{
+name : `update_post_category_${newCategory.id}`
+description : `Pouvoir editer un post dans ${newCategory.name}`
+},
+
+{
+name : `delete_post_category_${newCategory.id}`
+description : `Pouvoir supprimer un post dans ${newCategory.name}`
+},
+
+{
+name : `create_comment_post_category_${newCategory.id}`
+description : `Pouvoir ajouter un commentaire dans un post sur ${newCategory.name}`
+},
+
+{
+name : `update_comment_post_category_${newCategory.id}`
+description : `Pouvoir editer un commentaire dans un post sur ${newCategory.name}`
+},
+
+{
+name : `delete_comment_post_category_${newCategory.id}`
+description : `Pouvoir supprimer un commentaire dans un post sur ${newCategory.name}`
+},
+
+
+
+

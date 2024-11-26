@@ -1,0 +1,209 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+
+
+model Users {
+  id                 Int          @id @default(autoincrement())
+  username           String       @unique(map: "username")
+  email              String       @unique(map: "email")              
+  password           String
+  avatar             String?      @default("/images/v0_57.png")
+  isBanned           Boolean      @default(false)
+  isOnline           Boolean      @default(false)
+  lastSeen           DateTime?
+  resetPasswordToken String?
+  resetPasswordExpires DateTime?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @default(now())
+  userRoles          UsersRoles[]
+
+
+
+  posts     Post[]
+  comments  Comments[]
+  postLikes PostLike[]
+  postDislikes PostDislike[]
+  commentLikes CommentLike[]
+  commentDislikes CommentDislike[]
+  
+  @@map("users")
+}
+
+model Roles {
+  id          Int          @id @default(autoincrement())
+  name        String       @unique(map: "unique_roles_name")
+  staff       Boolean?     @default(false)
+  order       Int          @default(0)
+  color       String       @default("#000000")
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @default(now())
+  userRoles   UsersRoles[]
+
+  rolePermissions    RolePermissions[]
+
+  @@map("roles")
+  @@index([createdAt])
+}
+model UsersRoles {
+  userId             Int
+  roleId             Int
+  user               Users         @relation(fields: [userId], references: [id])
+  role               Roles         @relation(fields: [roleId], references: [id])
+  
+  @@id([userId, roleId])
+  @@map("users_roles")
+}
+
+model Permissions {
+  id              Int               @id @default(autoincrement())
+  name            String            @unique(map: "name")
+  description     String?
+  categoryId      Int?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @default(now())
+  category        Category?         @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  rolePermissions RolePermissions[]
+
+  @@map("permissions")
+  @@index([createdAt])
+  @@index([categoryId])
+}
+
+model RolePermissions {
+  id            Int          @id @default(autoincrement())
+  roleId        Int
+  permissionId  Int
+
+  role          Roles        @relation(fields: [roleId], references: [id])
+  permission    Permissions  @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@map("role_permissions")
+  @@index([roleId])
+  @@index([permissionId])
+}
+
+model Category {
+  id          Int           @id @default(autoincrement())
+  name        String
+  order       Int           @default(0)
+  slug        String
+  isLocked    Boolean       @default(false)
+  public      Boolean       @default(false)
+  description String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @default(now())
+  topics      Topic[]       @relation("CategoryTopics")
+  permissions Permissions[]
+
+  @@map("category")
+}
+
+model Topic {
+  id         Int      @id @default(autoincrement())
+  title      String
+  content    String
+  isLocked   Boolean  @default(false)
+  isPinned   Boolean  @default(false)
+  order      Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now())
+  categoryId Int
+  posts      Post[] @relation("TopicPosts")
+  category   Category @relation(fields: [categoryId], references: [id], name: "CategoryTopics", onDelete: Cascade)
+
+  @@index([categoryId], map: "topic_categoryId_fkey")
+  @@map("topic")
+}
+
+model Post {
+  id        Int          @id @default(autoincrement())
+  title     String
+  content   Json
+  isEdited  Boolean      @default(false)
+  isLocked  Boolean      @default(false)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @default(now())
+  userId    Int
+  topicId   Int
+  topic     Topic        @relation(fields: [topicId], references: [id], name: "TopicPosts", onDelete: Cascade)
+  user      Users        @relation(fields: [userId], references: [id])
+
+  comments  Comments[] @relation("PostComments")
+  likes     PostLike[] @relation("PostLikes")
+  dislikes  PostDislike[] @relation("PostDislikes")
+
+  @@index([topicId], map: "post_topicId_fkey")
+  @@index([userId], map: "post_userId_fkey")
+  @@map("post")
+}
+
+model Comments {
+  id         Int          @id @default(autoincrement())
+  content    Json
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @default(now())
+  userId     Int
+  postId     Int
+  post       Post         @relation(fields: [postId], references: [id], name: "PostComments", onDelete: Cascade)
+  user       Users        @relation(fields: [userId], references: [id])
+  
+  parentId   Int?
+  parent     Comments?    @relation("ParentComment", fields: [parentId], references: [id])
+  replies    Comments[]   @relation("ParentComment")
+
+  likes      CommentLike[] @relation("CommentLikes")
+  dislikes   CommentDislike[] @relation("CommentDislikes")
+}
+model PostLike {
+  id     Int    @id @default(autoincrement())
+  userId Int
+  postId Int
+  user   Users  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post   Post   @relation(fields: [postId], references: [id], name: "PostLikes", onDelete: Cascade)
+
+  @@unique([userId, postId], map: "unique_post_like")
+  @@index([userId], map: "index_post_like_userId")
+  @@index([postId], map: "index_post_like_postId")
+}
+model PostDislike {
+  id     Int    @id @default(autoincrement())
+  userId Int
+  postId Int
+  user   Users  @relation(fields: [userId], references: [id])
+  post   Post   @relation(fields: [postId], references: [id], name: "PostDislikes", onDelete: Cascade)
+
+  @@unique([userId, postId], map: "post_dislike_unique")
+  @@index([userId], map: "post_dislike_userId_idx")
+  @@index([postId], map: "post_dislike_postId_idx")
+}
+
+model CommentLike {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  commentId Int
+  user      Users     @relation(fields: [userId], references: [id])
+  comment   Comments  @relation(fields: [commentId], references: [id], name: "CommentLikes", onDelete: Cascade)
+
+  @@unique([userId, commentId], map: "comment_like_unique")
+  @@index([userId], map: "comment_like_userId_idx")
+  @@index([commentId], map: "comment_like_commentId_idx")
+}
+
+model CommentDislike {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  commentId Int
+  user      Users     @relation(fields: [userId], references: [id])
+  comment   Comments  @relation(fields: [commentId], references: [id], name: "CommentDislikes", onDelete: Cascade)
+
+  @@unique([userId, commentId], map: "comment_dislike_unique")
+  @@index([userId], map: "comment_dislike_userId_idx")
+  @@index([commentId], map: "comment_dislike_commentId_idx")
+}
